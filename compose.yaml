@@ -1,0 +1,9 @@
+services:
+  mailhog:
+    image: ${DESKTOP_PLUGIN_IMAGE}
+    volumes:
+      # Plugin data
+      - "mailhog:/root/mailhog/"
+
+volumes:
+  mailhog:

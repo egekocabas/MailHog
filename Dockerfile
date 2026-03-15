@@ -23,17 +23,20 @@ COPY ui /ui
 RUN npm run build
 
 FROM alpine
-LABEL org.opencontainers.image.title="mailhog" \
-    org.opencontainers.image.description="My awesome Docker extension" \
-    org.opencontainers.image.vendor="Ege Kocabaş" \
-    com.docker.desktop.extension.api.version="0.4.2" \
-    com.docker.extension.screenshots="" \
-    com.docker.desktop.extension.icon="" \
-    com.docker.extension.detailed-description="" \
-    com.docker.extension.publisher-url="" \
-    com.docker.extension.additional-urls="" \
-    com.docker.extension.categories="" \
-    com.docker.extension.changelog=""
+LABEL org.opencontainers.image.title="mailhog"
+LABEL org.opencontainers.image.description="My awesome Docker extension"
+LABEL org.opencontainers.image.vendor="Ege Kocabaş"
+LABEL com.docker.desktop.extension.api.version="0.4.2"
+LABEL com.docker.extension.screenshots=""
+LABEL com.docker.desktop.extension.icon="https://raw.githubusercontent.com/egekocabas/mailhog/refs/heads/main/assets/extension-icon.svg"
+LABEL com.docker.extension.detailed-description=""
+LABEL com.docker.extension.publisher-url="https://github.com/egekocabas/mailhog"
+LABEL com.docker.extension.additional-urls="\
+    [{\"title\":\"GitHub\",\"url\":\"https:\/\/github.com\/egekocabas\/mailhog\"},\
+    {\"title\":\"License\",\"url\":\"https://github.com/egekocabas/mailhog/blob/main/LICENSE\"}]"
+LABEL com.docker.extension.categories="utility-tools"
+LABEL com.docker.extension.changelog="<ul><li>Initial release</li></ul>"
+LABEL com.docker.extension.account-info=""
 
 COPY --from=builder /backend/bin/service /
 COPY docker-compose.yaml .
