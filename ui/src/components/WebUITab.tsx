@@ -5,6 +5,7 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -22,6 +23,8 @@ interface WebUITabProps {
 }
 
 export function WebUITab({ uiHostPort, ddClient, zoom, onZoomChange }: WebUITabProps) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const hasBinding = uiHostPort && uiHostPort !== '0';
   const url = hasBinding ? `http://localhost:${uiHostPort}` : '';
 
@@ -105,6 +108,7 @@ export function WebUITab({ uiHostPort, ddClient, zoom, onZoomChange }: WebUITabP
             height: `${100 / zoom}%`,
             transform: `scale(${zoom})`,
             transformOrigin: 'top left',
+            ...(isDark && { filter: 'invert(1) hue-rotate(180deg)' }),
           }}
         />
       </Box>
