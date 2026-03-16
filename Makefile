@@ -1,5 +1,5 @@
 IMAGE?=egekocabas/mailhog
-TAG?=0.1.0
+TAG?=latest
 
 BUILDER=buildx-multi-arch
 
