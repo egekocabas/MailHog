@@ -175,14 +175,16 @@ export function App() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <RunningHeader
-        smtpPort={status.smtpHostPort ? Number(status.smtpHostPort) : 0}
-        uiPort={status.uiHostPort ? Number(status.uiHostPort) : 0}
-        activeAction={activeAction === 'stop' || activeAction === 'restart' ? activeAction : null}
-        onRestart={handleRestart}
-        onStop={handleStop}
-      />
+    <Box sx={{ display: 'flex', flexDirection: 'column', position: 'fixed', inset: 0 }}>
+      <Box sx={{ flexShrink: 0 }}>
+        <RunningHeader
+          smtpPort={status.smtpHostPort ? Number(status.smtpHostPort) : 0}
+          uiPort={status.uiHostPort ? Number(status.uiHostPort) : 0}
+          activeAction={activeAction === 'stop' || activeAction === 'restart' ? activeAction : null}
+          onRestart={handleRestart}
+          onStop={handleStop}
+        />
+      </Box>
       <MainTabs uiHostPort={status.uiHostPort} ddClient={ddClient} zoom={zoom} onZoomChange={(z) => { setZoom(z); saveSettings(svc, { smtpPort, uiPort, zoom: z }).catch(() => {/* non-fatal */}); }} />
       <Backdrop open={busy} sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}>
         <CircularProgress />

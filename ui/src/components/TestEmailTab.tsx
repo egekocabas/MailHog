@@ -27,8 +27,6 @@ export function TestEmailTab({ ddClient }: TestEmailTabProps) {
     body: 'This is a test email sent from the MailHog Docker Desktop extension.',
   };
 
-  const canSend = !sending;
-
   const handleSend = async () => {
     setSending(true);
     setResult(null);
@@ -50,62 +48,85 @@ export function TestEmailTab({ ddClient }: TestEmailTabProps) {
 
   return (
     <Box sx={{ pt: 3, px: 3 }}>
-      <Stack spacing={2} sx={{ maxWidth: 520 }}>
-        <TextField
-          label="From"
-          InputLabelProps={{ shrink: true }}
-          type="email"
-          placeholder={defaults.from}
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
+      {/* Alert row — full width above both columns */}
+      {result === 'delivered' && (
+        <Alert severity="success" sx={{ mb: 2 }}>Email delivered successfully.</Alert>
+      )}
+      {result === 'unverified' && (
+        <Alert severity="warning" sx={{ mb: 2 }}>Email sent but delivery could not be verified.</Alert>
+      )}
+
+      {/* Action buttons row */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Button
+          variant="outlined"
+          onClick={() => { setFrom(''); setTo(''); setSubject(''); setBody(''); setResult(null); }}
           disabled={sending}
-          fullWidth
-        />
-        <TextField
-          label="To"
-          InputLabelProps={{ shrink: true }}
-          type="email"
-          placeholder={defaults.to}
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          disabled={sending}
-          fullWidth
-        />
-        <TextField
-          label="Subject"
-          InputLabelProps={{ shrink: true }}
-          placeholder={defaults.subject}
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          disabled={sending}
-          fullWidth
-        />
-        <TextField
-          label="Body"
-          InputLabelProps={{ shrink: true }}
-          placeholder={defaults.body}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          disabled={sending}
-          multiline
-          minRows={4}
-          fullWidth
-        />
+          sx={{ flex: 1 }}
+        >
+          Clear Inputs
+        </Button>
         <Button
           variant="contained"
           onClick={handleSend}
-          disabled={!canSend}
+          disabled={sending}
           startIcon={sending ? <CircularProgress size={16} color="inherit" /> : undefined}
+          sx={{ flex: 1 }}
         >
           {sending ? 'Sending…' : 'Send Test Email'}
         </Button>
-        {result === 'delivered' && (
-          <Alert severity="success">Email delivered successfully.</Alert>
-        )}
-        {result === 'unverified' && (
-          <Alert severity="warning">Email sent but delivery could not be verified.</Alert>
-        )}
-      </Stack>
+      </Box>
+
+      {/* Two-column layout */}
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+        {/* Left column: From, To, Subject */}
+        <Stack spacing={2} sx={{ flex: 1 }}>
+          <TextField
+            label="From"
+            InputLabelProps={{ shrink: true }}
+            type="email"
+            placeholder={defaults.from}
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            disabled={sending}
+            fullWidth
+          />
+          <TextField
+            label="To"
+            InputLabelProps={{ shrink: true }}
+            type="email"
+            placeholder={defaults.to}
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            disabled={sending}
+            fullWidth
+          />
+          <TextField
+            label="Subject"
+            InputLabelProps={{ shrink: true }}
+            placeholder={defaults.subject}
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            disabled={sending}
+            fullWidth
+          />
+        </Stack>
+
+        {/* Right column: Body */}
+        <Box sx={{ flex: 1 }}>
+          <TextField
+            label="Body"
+            InputLabelProps={{ shrink: true }}
+            placeholder={defaults.body}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            disabled={sending}
+            multiline
+            minRows={8}
+            fullWidth
+          />
+        </Box>
+      </Box>
     </Box>
   );
 }

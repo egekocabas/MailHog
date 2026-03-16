@@ -18,7 +18,7 @@ export function MainTabs({ uiHostPort, ddClient, zoom, onZoomChange }: MainTabsP
 
   return (
     <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', mt: 1 }}>
+      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ flexShrink: 0, borderBottom: 1, borderColor: 'divider', mt: 1 }}>
         <Tab label="Web UI" />
         <Tab label="Test Email" />
       </Tabs>
@@ -32,7 +32,7 @@ export function MainTabs({ uiHostPort, ddClient, zoom, onZoomChange }: MainTabsP
       <Box
         role="tabpanel"
         hidden={activeTab !== 1}
-        sx={{ flexGrow: 1, display: activeTab === 1 ? 'flex' : 'none', flexDirection: 'column', overflow: 'auto' }}
+        sx={{ flexGrow: 1, minHeight: 0, display: activeTab === 1 ? 'flex' : 'none', flexDirection: 'column', overflow: 'auto' }}
       >
         <TestEmailTab ddClient={ddClient} />
       </Box>
