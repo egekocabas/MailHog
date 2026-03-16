@@ -70,6 +70,8 @@ func main() {
 	router.POST("/mailhog/restart", h.Restart)
 	router.POST("/mailhog/test", h.TestEmail)
 	router.GET("/mailhog/messages", h.Messages)
+	router.GET("/mailhog/settings", h.GetSettings)
+	router.POST("/mailhog/settings", h.SaveSettings)
 
 	logger.Fatal(router.Start(""))
 }

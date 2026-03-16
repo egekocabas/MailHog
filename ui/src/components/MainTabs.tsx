@@ -9,9 +9,11 @@ import { TestEmailTab } from './TestEmailTab';
 interface MainTabsProps {
   uiHostPort: string | undefined;
   ddClient: DockerDesktopClient;
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
 }
 
-export function MainTabs({ uiHostPort, ddClient }: MainTabsProps) {
+export function MainTabs({ uiHostPort, ddClient, zoom, onZoomChange }: MainTabsProps) {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
@@ -25,7 +27,7 @@ export function MainTabs({ uiHostPort, ddClient }: MainTabsProps) {
         hidden={activeTab !== 0}
         sx={{ flexGrow: 1, display: activeTab === 0 ? 'flex' : 'none', flexDirection: 'column', overflow: 'hidden', pt: 1 }}
       >
-        <WebUITab uiHostPort={uiHostPort} ddClient={ddClient} />
+        <WebUITab uiHostPort={uiHostPort} ddClient={ddClient} zoom={zoom} onZoomChange={onZoomChange} />
       </Box>
       <Box
         role="tabpanel"

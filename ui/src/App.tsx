@@ -3,8 +3,7 @@ import Backdrop from '@mui/material/Backdrop';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { createDockerDesktopClient } from '@docker/extension-api-client';
-import { fetchStatus, startMailHog, stopMailHog, restartMailHog, extractMessage, ConflictError, type MailHogStatus } from './api';
-import { storage } from './storage';
+import { fetchStatus, fetchSettings, saveSettings, startMailHog, stopMailHog, restartMailHog, extractMessage, ConflictError, type MailHogStatus } from './api';
 import { SetupScreen } from './components/SetupScreen';
 import { RunningHeader } from './components/RunningHeader';
 import { MainTabs } from './components/MainTabs';
@@ -16,23 +15,25 @@ export function App() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [activeAction, setActiveAction] = useState<'start' | 'stop' | 'restart' | null>(null);
   const [status, setStatus] = useState<MailHogStatus | null>(null);
-  const [smtpPort, setSmtpPort] = useState(storage.getSmtpPort);
-  const [uiPort,   setUiPort]   = useState(storage.getUiPort);
+  const [smtpPort, setSmtpPort] = useState(1025);
+  const [uiPort,   setUiPort]   = useState(8025);
+  const [zoom,     setZoom]     = useState(1.0);
   const [conflictInfo, setConflictInfo] = useState<MailHogStatus | null>(null);
 
   const svc = ddClient.extension.vm!.service!;
 
   useEffect(() => {
-    console.log('[App] initial status fetch');
-    fetchStatus(svc)
-      .then((s) => {
-        console.log('[App] initial status:', s);
+    console.log('[App] initial fetch');
+    Promise.all([fetchStatus(svc), fetchSettings(svc)])
+      .then(([s, cfg]) => {
+        console.log('[App] initial status:', s, 'settings:', cfg);
         setStatus(s);
-        if (s.smtpHostPort) setSmtpPort(Number(s.smtpHostPort));
-        if (s.uiHostPort) setUiPort(Number(s.uiHostPort));
+        setSmtpPort(s.smtpHostPort ? Number(s.smtpHostPort) : cfg.smtpPort);
+        setUiPort(s.uiHostPort ? Number(s.uiHostPort) : cfg.uiPort);
+        setZoom(cfg.zoom);
       })
       .catch((err) => {
-        console.error('[App] initial status error:', err);
+        console.error('[App] initial fetch error:', err);
         // Leave status = null → shows SetupScreen
       })
       .finally(() => setInitialLoading(false));
@@ -48,8 +49,7 @@ export function App() {
       setStatus(s);
       if (s.smtpHostPort) setSmtpPort(Number(s.smtpHostPort));
       if (s.uiHostPort) setUiPort(Number(s.uiHostPort));
-      storage.setSmtpPort(smtpPort);
-      storage.setUiPort(uiPort);
+      saveSettings(svc, { smtpPort, uiPort, zoom }).catch(() => {/* non-fatal */});
     } catch (err) {
       console.error('[App] handleStart error:', err);
       if (err instanceof ConflictError) {
@@ -72,8 +72,7 @@ export function App() {
       setStatus(s);
       if (s.smtpHostPort) setSmtpPort(Number(s.smtpHostPort));
       if (s.uiHostPort) setUiPort(Number(s.uiHostPort));
-      storage.setSmtpPort(smtpPort);
-      storage.setUiPort(uiPort);
+      saveSettings(svc, { smtpPort, uiPort, zoom }).catch(() => {/* non-fatal */});
     } catch (err) {
       console.error('[App] handleForceStart error:', err);
       ddClient.desktopUI.toast.error(extractMessage(err));
@@ -108,8 +107,7 @@ export function App() {
       setStatus(s);
       if (s.smtpHostPort) setSmtpPort(Number(s.smtpHostPort));
       if (s.uiHostPort) setUiPort(Number(s.uiHostPort));
-      storage.setSmtpPort(newSmtp);
-      storage.setUiPort(newUi);
+      saveSettings(svc, { smtpPort: newSmtp, uiPort: newUi, zoom }).catch(() => {/* non-fatal */});
     } catch (err) {
       console.error('[App] handleRestart error:', err);
       ddClient.desktopUI.toast.error(extractMessage(err));
@@ -166,7 +164,7 @@ export function App() {
         onRestart={handleRestart}
         onStop={handleStop}
       />
-      <MainTabs uiHostPort={status.uiHostPort} ddClient={ddClient} />
+      <MainTabs uiHostPort={status.uiHostPort} ddClient={ddClient} zoom={zoom} onZoomChange={(z) => { setZoom(z); saveSettings(svc, { smtpPort, uiPort, zoom: z }).catch(() => {/* non-fatal */}); }} />
       <Backdrop open={busy} sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}>
         <CircularProgress />
       </Backdrop>

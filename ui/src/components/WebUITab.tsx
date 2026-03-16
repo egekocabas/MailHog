@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -10,7 +9,6 @@ import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { DockerDesktopClient } from '@docker/extension-api-client-types/dist/v1';
-import { storage } from '../storage';
 
 const ZOOM_STEP = 0.1;
 const ZOOM_MIN = 0.5;
@@ -19,18 +17,17 @@ const ZOOM_MAX = 2.0;
 interface WebUITabProps {
   uiHostPort: string | undefined;
   ddClient: DockerDesktopClient;
+  zoom: number;
+  onZoomChange: (zoom: number) => void;
 }
 
-export function WebUITab({ uiHostPort, ddClient }: WebUITabProps) {
-  const [zoom, setZoom] = useState(storage.getZoom);
-
+export function WebUITab({ uiHostPort, ddClient, zoom, onZoomChange }: WebUITabProps) {
   const hasBinding = uiHostPort && uiHostPort !== '0';
   const url = hasBinding ? `http://localhost:${uiHostPort}` : '';
 
   const changeZoom = (next: number) => {
     const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(next * 10) / 10));
-    setZoom(clamped);
-    storage.setZoom(clamped);
+    onZoomChange(clamped);
   };
 
   const zoomIn  = () => changeZoom(zoom + ZOOM_STEP);

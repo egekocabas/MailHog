@@ -2,12 +2,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
 )
+
+const settingsPath = "/root/mailhog/settings.json"
+
+type Settings struct {
+	SMTPPort int     `json:"smtpPort"`
+	UIPort   int     `json:"uiPort"`
+	Zoom     float64 `json:"zoom"`
+}
+
+var defaultSettings = Settings{SMTPPort: 1025, UIPort: 8025, Zoom: 1.0}
 
 type Handler struct {
 	manager *Manager
@@ -103,6 +115,30 @@ func (h *Handler) TestEmail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, map[string]bool{"delivered": delivered})
+}
+
+func (h *Handler) GetSettings(c echo.Context) error {
+	data, err := os.ReadFile(settingsPath)
+	if err != nil {
+		return c.JSON(http.StatusOK, defaultSettings)
+	}
+	var s Settings
+	if err := json.Unmarshal(data, &s); err != nil {
+		return c.JSON(http.StatusOK, defaultSettings)
+	}
+	return c.JSON(http.StatusOK, s)
+}
+
+func (h *Handler) SaveSettings(c echo.Context) error {
+	var s Settings
+	if err := c.Bind(&s); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	data, _ := json.Marshal(s)
+	if err := os.WriteFile(settingsPath, data, 0644); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+	return c.JSON(http.StatusOK, s)
 }
 
 func (h *Handler) Messages(c echo.Context) error {

@@ -86,3 +86,17 @@ export async function sendTestEmail(
   console.log('[api] POST /mailhog/test', payload);
   return handleResponse<{ delivered: boolean }>(svc.post('/mailhog/test', payload));
 }
+
+export interface Settings {
+  smtpPort: number;
+  uiPort: number;
+  zoom: number;
+}
+
+export async function fetchSettings(svc: Service): Promise<Settings> {
+  return handleResponse<Settings>(svc.get('/mailhog/settings'));
+}
+
+export async function saveSettings(svc: Service, s: Settings): Promise<void> {
+  await handleResponse<Settings>(svc.post('/mailhog/settings', s));
+}
