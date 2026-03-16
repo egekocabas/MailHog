@@ -34,8 +34,10 @@ MailHog is a lightweight SMTP testing server that captures outgoing emails inste
 Install from the [Docker Desktop Extensions Marketplace](https://hub.docker.com/extensions/egekocabas/mailhog) or run:
 
 ```sh
-docker extension install egekocabas/mailhog:latest
+docker extension install egekocabas/mailhog:<version>
 ```
+
+> Replace `<version>` with the latest version tag (e.g. `1.0.0`). Check the available tags on [Docker Hub](https://hub.docker.com/r/egekocabas/mailhog/tags).
 
 ---
 
