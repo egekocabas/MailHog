@@ -14,9 +14,13 @@ import (
 const settingsPath = "/root/mailhog/settings.json"
 
 type Settings struct {
-	SMTPPort int     `json:"smtpPort"`
-	UIPort   int     `json:"uiPort"`
-	Zoom     float64 `json:"zoom"`
+	SMTPPort    int     `json:"smtpPort"`
+	UIPort      int     `json:"uiPort"`
+	Zoom        float64 `json:"zoom"`
+	TestFrom    string  `json:"testFrom"`
+	TestTo      string  `json:"testTo"`
+	TestSubject string  `json:"testSubject"`
+	TestBody    string  `json:"testBody"`
 }
 
 var defaultSettings = Settings{SMTPPort: 1025, UIPort: 8025, Zoom: 1.0}

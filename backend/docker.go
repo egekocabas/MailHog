@@ -40,6 +40,7 @@ type Manager struct {
 	cli           *client.Client
 	mu            sync.Mutex
 	containerName string
+	containerIP   string
 }
 
 func NewManager() (*Manager, error) {
@@ -208,14 +209,22 @@ func (m *Manager) StartMailHog(ctx context.Context, cfg Config) error {
 		return fmt.Errorf("start container: %w", err)
 	}
 
-	info, err := m.cli.ContainerInspect(ctx, resp.ID)
-	if err == nil {
-		m.mu.Lock()
-		m.containerName = strings.TrimPrefix(info.Name, "/")
-		m.mu.Unlock()
-	}
-
+	m.cacheContainerInfo(ctx, resp.ID)
 	return nil
+}
+
+// cacheContainerInfo inspects a container and stores its name and network IP.
+func (m *Manager) cacheContainerInfo(ctx context.Context, containerID string) {
+	info, err := m.cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return
+	}
+	m.mu.Lock()
+	m.containerName = strings.TrimPrefix(info.Name, "/")
+	if net, ok := info.NetworkSettings.Networks[networkName]; ok {
+		m.containerIP = net.IPAddress
+	}
+	m.mu.Unlock()
 }
 
 func (m *Manager) findContainerByLabel(ctx context.Context) (string, error) {
@@ -241,9 +250,7 @@ func (m *Manager) resolveContainerName(ctx context.Context) (string, error) {
 		return "", err
 	}
 	if name != "" {
-		m.mu.Lock()
-		m.containerName = name
-		m.mu.Unlock()
+		m.cacheContainerInfo(ctx, name)
 	}
 	return name, nil
 }
@@ -282,6 +289,7 @@ func (m *Manager) RemoveMailHog(ctx context.Context) error {
 	}
 	m.mu.Lock()
 	m.containerName = ""
+	m.containerIP = ""
 	m.mu.Unlock()
 	return nil
 }
@@ -326,14 +334,20 @@ func (m *Manager) GetStatus(ctx context.Context) (Status, error) {
 
 func (m *Manager) GetMailHogSMTPAddr() string {
 	m.mu.Lock()
-	name := m.containerName
+	host := m.containerIP
+	if host == "" {
+		host = m.containerName
+	}
 	m.mu.Unlock()
-	return name + fmt.Sprintf(":%d", smtpInternalPort)
+	return fmt.Sprintf("%s:%d", host, smtpInternalPort)
 }
 
 func (m *Manager) GetMailHogAPIURL() string {
 	m.mu.Lock()
-	name := m.containerName
+	host := m.containerIP
+	if host == "" {
+		host = m.containerName
+	}
 	m.mu.Unlock()
-	return fmt.Sprintf("http://%s:%d", name, uiInternalPort)
+	return fmt.Sprintf("http://%s:%d", host, uiInternalPort)
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -6,7 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import type { DockerDesktopClient } from '@docker/extension-api-client-types/dist/v1';
-import { sendTestEmail, extractMessage } from '../api';
+import { sendTestEmail, fetchSettings, saveSettings, extractMessage } from '../api';
 
 interface TestEmailTabProps {
   ddClient: DockerDesktopClient;
@@ -27,24 +27,48 @@ export function TestEmailTab({ ddClient }: TestEmailTabProps) {
     body: 'This is a test email sent from the MailHog Docker Desktop extension.',
   };
 
+  const svc = ddClient.extension.vm!.service!;
+
+  useEffect(() => {
+    fetchSettings(svc)
+      .then((s) => {
+        if (s.testFrom    && s.testFrom    !== defaults.from)    setFrom(s.testFrom);
+        if (s.testTo      && s.testTo      !== defaults.to)      setTo(s.testTo);
+        if (s.testSubject && s.testSubject !== defaults.subject) setSubject(s.testSubject);
+        if (s.testBody    && s.testBody    !== defaults.body)    setBody(s.testBody);
+      })
+      .catch(() => {/* non-fatal — fall back to empty fields */});
+  }, []);
+
   const handleSend = async () => {
     setSending(true);
     setResult(null);
+    const effective = {
+      from:    from.trim()    || defaults.from,
+      to:      to.trim()      || defaults.to,
+      subject: subject.trim() || defaults.subject,
+      body:    body.trim()    || defaults.body,
+    };
     try {
-      const svc = ddClient.extension.vm!.service!;
-      const resp = await sendTestEmail(svc, {
-        from: from.trim() || defaults.from,
-        to: to.trim() || defaults.to,
-        subject: subject.trim() || defaults.subject,
-        body: body.trim() || defaults.body,
-      });
+      const resp = await sendTestEmail(svc, effective);
       setResult(resp.delivered ? 'delivered' : 'unverified');
+      // Persist whatever was actually sent so it's restored next time
+      fetchSettings(svc)
+        .then((s) => saveSettings(svc, {
+          ...s,
+          testFrom:    effective.from,
+          testTo:      effective.to,
+          testSubject: effective.subject,
+          testBody:    effective.body,
+        }))
+        .catch(() => {/* non-fatal */});
     } catch (err) {
       ddClient.desktopUI.toast.error(extractMessage(err));
     } finally {
       setSending(false);
     }
   };
+
 
   return (
     <Box sx={{ pt: 3, px: 3 }}>
@@ -60,7 +84,18 @@ export function TestEmailTab({ ddClient }: TestEmailTabProps) {
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         <Button
           variant="outlined"
-          onClick={() => { setFrom(''); setTo(''); setSubject(''); setBody(''); setResult(null); }}
+          onClick={() => {
+            setFrom(''); setTo(''); setSubject(''); setBody(''); setResult(null);
+            fetchSettings(svc)
+              .then((s) => saveSettings(svc, {
+                ...s,
+                testFrom:    defaults.from,
+                testTo:      defaults.to,
+                testSubject: defaults.subject,
+                testBody:    defaults.body,
+              }))
+              .catch(() => {/* non-fatal */});
+          }}
           disabled={sending}
           sx={{ flex: 1 }}
         >

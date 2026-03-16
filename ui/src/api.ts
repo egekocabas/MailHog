@@ -93,9 +93,13 @@ export async function sendTestEmail(
 }
 
 export interface Settings {
-  smtpPort: number;
-  uiPort: number;
-  zoom: number;
+  smtpPort?: number;
+  uiPort?: number;
+  zoom?: number;
+  testFrom?: string;
+  testTo?: string;
+  testSubject?: string;
+  testBody?: string;
 }
 
 export async function fetchSettings(svc: Service): Promise<Settings> {

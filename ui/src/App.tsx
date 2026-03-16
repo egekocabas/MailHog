@@ -27,11 +27,11 @@ export function App() {
     Promise.all([fetchStatus(svc), fetchSettings(svc)])
       .then(async ([s, cfg]) => {
         console.log('[App] initial status:', s, 'settings:', cfg);
-        const resolvedSmtp = s.smtpHostPort ? Number(s.smtpHostPort) : cfg.smtpPort;
-        const resolvedUi   = s.uiHostPort   ? Number(s.uiHostPort)   : cfg.uiPort;
+        const resolvedSmtp = s.smtpHostPort ? Number(s.smtpHostPort) : (cfg.smtpPort ?? 1025);
+        const resolvedUi   = s.uiHostPort   ? Number(s.uiHostPort)   : (cfg.uiPort   ?? 8025);
         setSmtpPort(resolvedSmtp);
         setUiPort(resolvedUi);
-        setZoom(cfg.zoom);
+        setZoom(cfg.zoom ?? 1.0);
 
         if (!s.running && s.containerID) {
           // Stopped labeled container exists — auto-restart it silently
